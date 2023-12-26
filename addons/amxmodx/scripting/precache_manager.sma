@@ -112,6 +112,7 @@ public load_data()
 		modelCount++ 
 	}
 
+	fclose(file)
 	formatex(fileName, charsmax(fileName), "%s/econf/precache_manager/unprecache_sounds.ini", path)
 	file = fopen(fileName, "rt")
 	if (!file)
@@ -127,9 +128,10 @@ public load_data()
 		
 		trim(lineText)
 		soundList[soundCount] = lineText
-		soundCount++ 
+		soundCount++
 	}
 
+	fclose(file)
 	formatex(fileName, charsmax(fileName), "%s/econf/precache_manager/unprecache_generics.ini", path)
 	file = fopen(fileName, "rt")
 	if (!file)
@@ -145,8 +147,10 @@ public load_data()
 		
 		trim(lineText)
 		genericList[genericCount] = lineText
-		genericCount++ 
+		genericCount++
 	}
+
+	fclose(file)
 }
 
 public precacheModel(const model[])
