@@ -9,15 +9,15 @@ new precachedSounds
 new precachedGeneric
 
 const MAX_MODELS = 512
-new modelList[MAX_MODELS][255]
+new modelList[MAX_MODELS][64]
 new modelCount
 
 const MAX_SOUNDS = 512
-new soundList[MAX_SOUNDS][255]
+new soundList[MAX_SOUNDS][64]
 new soundCount
 
 const MAX_GENERIC = 1024
-new genericList[MAX_GENERIC][255]
+new genericList[MAX_GENERIC][64]
 new genericCount
 
 public plugin_init()
