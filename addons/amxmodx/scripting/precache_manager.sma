@@ -87,17 +87,17 @@ public plugin_precache()
 
 public load_data()
 {
-	new path[384]
+	new path[256]
 	get_configsdir(path, charsmax(path))
 
-	new fileName[384]
+	new fileName[256]
 	formatex(fileName, charsmax(fileName), "%s/econf/precache_manager/unprecache_models.ini", path)
 
 	new file = fopen(fileName, "rt")
 	if (!file)
 		return
 	
-	new lineText[255]
+	new lineText[128]
 	new size = charsmax(lineText)
 	while (modelCount < MAX_MODELS && !feof(file))
 	{
