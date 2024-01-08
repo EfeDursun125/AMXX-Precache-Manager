@@ -1,24 +1,15 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <fakemeta>
-#define PLUGIN_VERSION "0.1"
+#define PLUGIN_VERSION "0.2"
 
-new i
 new precachedModels
 new precachedSounds
 new precachedGeneric
 
-const MAX_MODELS = 400
-new modelList[MAX_MODELS][128]
-new modelCount
-
-const MAX_SOUNDS = 400
-new soundList[MAX_SOUNDS][128]
-new soundCount
-
-const MAX_GENERIC = 700
-new genericList[MAX_GENERIC][128]
-new genericCount
+new Array:modelList
+new Array:soundList
+new Array:genericList
 
 public plugin_init()
 {
@@ -26,39 +17,44 @@ public plugin_init()
 	register_cvar("amx_pm_version", PLUGIN_VERSION)
 	register_clcmd("amx_pm_limit", "show_limit")
 	register_srvcmd("amx_pm_limit", "show_limit_server")
+
 #if AMXX_VERSION_NUM > 182
+	//new version[4]
+	//get_amxx_verstring(version, charsmax(version))
+	//if (str_to_float(version) > 1.82)
 	hook_cvar_change(register_cvar("amx_pm_secure", "0"), "setHook") // to block precache error/warrnings
 #endif
+
+	modelList = ArrayCreate(128, 1)
+	soundList = ArrayCreate(128, 1)
+	genericList = ArrayCreate(128, 1)
+}
+
+public plugin_end()
+{
+	ArrayDestroy(modelList)
+	ArrayDestroy(soundList)
+	ArrayDestroy(genericList)
 }
 
 #if AMXX_VERSION_NUM > 182
 new id
 new id2
 new id3
-new id4
-new id5
-new id6
-
 public setHook(pcvar, const oldValue[], const newValue[])
 {
 	if (oldValue[0] != 1 && newValue[0] == 1)
 	{
 		id = register_forward(FM_SetModel, "setModel")
-		id2 = register_forward(FM_SetModel, "setModel", 1)
-		id3 = register_forward(FM_EmitSound, "emitSound")
-		id4 = register_forward(FM_EmitSound, "emitSound", 1)
-		id5 = register_forward(FM_EmitAmbientSound, "emitSound")
-		id6 = register_forward(FM_EmitAmbientSound, "emitSound", 1)
+		id2 = register_forward(FM_EmitSound, "emitSound")
+		id3 = register_forward(FM_EmitAmbientSound, "emitSound")
 	}
 
 	if (oldValue[0] == 1 && newValue[0] != 1)
 	{
 		unregister_forward(FM_SetModel, id)
-		unregister_forward(FM_SetModel, id2, 1)
-		unregister_forward(FM_EmitSound, id3)
-		unregister_forward(FM_EmitSound, id4, 1)
-		unregister_forward(FM_EmitAmbientSound, id5)
-		unregister_forward(FM_EmitAmbientSound, id6, 1)
+		unregister_forward(FM_EmitSound, id2)
+		unregister_forward(FM_EmitAmbientSound, id3)
 	}
 }
 #endif
@@ -99,17 +95,16 @@ public load_data()
 	
 	new lineText[128]
 	new size = charsmax(lineText)
-	while (modelCount < MAX_MODELS && !feof(file))
+	while (!feof(file))
 	{
 		fgets(file, lineText, size)
 		replace(lineText, size, "^n", "")
 
 		if (lineText[0] == ';' || !lineText[0])
 			continue
-		
+
 		trim(lineText)
-		modelList[modelCount] = lineText
-		modelCount++ 
+		ArrayPushString(modelList, lineText)
 	}
 
 	fclose(file)
@@ -118,17 +113,16 @@ public load_data()
 	if (!file)
 		return
 	
-	while (soundCount < MAX_SOUNDS && !feof(file))
+	while (!feof(file))
 	{
 		fgets(file, lineText, size)
 		replace(lineText, size, "^n", "")
 
 		if (lineText[0] == ';' || !lineText[0])
 			continue
-		
+
 		trim(lineText)
-		soundList[soundCount] = lineText
-		soundCount++
+		ArrayPushString(soundList, lineText)
 	}
 
 	fclose(file)
@@ -137,17 +131,16 @@ public load_data()
 	if (!file)
 		return
 	
-	while (genericCount < MAX_GENERIC && !feof(file))
+	while (!feof(file))
 	{
 		fgets(file, lineText, size)
 		replace(lineText, size, "^n", "")
 
 		if (lineText[0] == ';' || !lineText[0])
 			continue
-		
+
 		trim(lineText)
-		genericList[genericCount] = lineText
-		genericCount++
+		ArrayPushString(soundList, lineText)
 	}
 
 	fclose(file)
@@ -155,33 +148,39 @@ public load_data()
 
 public precacheModel(const model[])
 {
-	for (i = 0; i < modelCount; i++)
+	new i, size = ArraySize(modelList), temp[128], limit = charsmax(temp)
+	for (i = 0; i < size; i++)
 	{
-		if (strcmp(model, modelList[i]) == 0)
-			return FMRES_SUPERCEDE
+		ArrayGetString(modelList, i, temp, limit)
+		if (strcmp(model, temp) == 0)
+			return FMRES_SUPERCEDE 
 	}
-	
+
 	precachedModels++
 	return FMRES_IGNORED
 }
 
 public precacheSound(const sound[])
 {
-	for (i = 0; i < soundCount; i++)
+	new i, size = ArraySize(soundList), temp[128], limit = charsmax(temp)
+	for (i = 0; i < size; i++)
 	{
-		if (strcmp(sound, soundList[i]) == 0)
+		ArrayGetString(soundList, i, temp, limit)
+		if (strcmp(sound, temp) == 0)
 			return FMRES_SUPERCEDE 
 	}
-	
+
 	precachedSounds++
 	return FMRES_IGNORED
 }
 
 public precacheGeneric(const generic[])
 {
-	for (i = 0; i < genericCount; i++)
+	new i, size = ArraySize(genericList), temp[128], limit = charsmax(temp)
+	for (i = 0; i < size; i++)
 	{
-		if (strcmp(generic, genericList[i]) == 0)
+		ArrayGetString(genericList, i, temp, limit)
+		if (strcmp(generic, temp) == 0)
 			return FMRES_SUPERCEDE 
 	}
 	
@@ -192,25 +191,15 @@ public precacheGeneric(const generic[])
 #if AMXX_VERSION_NUM > 182
 public setModel(const model[])
 {
-	for (i = 0; i < modelCount; i++)
-	{
-		// do not allow to set unprecached models
-		if (strcmp(model, modelList[i]) == 0)
-			return FMRES_SUPERCEDE
-	}
-
+	if (ArrayFindString(modelList, model) != -1)
+		return FMRES_SUPERCEDE
 	return FMRES_IGNORED
 }
 
 public emitSound(const sound[])
 {
-	for (i = 0; i < soundCount; i++)
-	{
-		// do not allow to emit unprecached sounds
-		if (strcmp(sound, soundList[i]) == 0)
-			return FMRES_SUPERCEDE
-	}
-
+	if (ArrayFindString(soundList, sound) != -1)
+		return FMRES_SUPERCEDE
 	return FMRES_IGNORED
 }
 #endif
