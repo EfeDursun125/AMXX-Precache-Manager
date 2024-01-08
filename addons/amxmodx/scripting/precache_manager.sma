@@ -86,9 +86,13 @@ public load_data()
 	new path[256]
 	get_configsdir(path, charsmax(path))
 
-	new fileName[256]
-	formatex(fileName, charsmax(fileName), "%s/econf/precache_manager/unprecache_models.ini", path)
+	new filePath[256]
+	formatex(filePath, charsmax(filePath), "%s/econf/precache_manager", path)
+	if (!dir_exists(path))
+		mkdir(path)
 
+	new fileName[256]
+	formatex(fileName, charsmax(fileName), "%s/unprecache_models.ini", filePath)
 	new file = fopen(fileName, "rt")
 	if (!file)
 		return
